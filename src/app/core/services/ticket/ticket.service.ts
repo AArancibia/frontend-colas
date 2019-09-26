@@ -1,14 +1,19 @@
 import { Injectable } from "@angular/core";
 import { Socket } from "ngx-socket-io";
 import { environment } from "@env/environment";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Observable, forkJoin } from "rxjs";
+import { AuthenticationService } from "@app/authentication/authentication.service";
 
 @Injectable()
 export class TicketService extends Socket {
   observable: Observable<any>;
   private api: string = environment.url_server;
-  constructor(private httpClient: HttpClient) {
+
+  constructor(
+    private httpClient: HttpClient,
+    private authService: AuthenticationService
+  ) {
     super({
       url: environment.wsUrl + "/ticket",
       options: {}
@@ -23,7 +28,8 @@ export class TicketService extends Socket {
   ): Observable<any> {
     const url = this.api + endpoint;
     return this.httpClient.request(method, `${url}`, {
-      body
+      body,
+      headers: this.authService.obtenerToken()
     });
   }
 
