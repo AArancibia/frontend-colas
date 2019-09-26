@@ -182,14 +182,6 @@ export class TicketComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
-  /**
-   * Funcion que lista los tickets del servicio de socket:
-   * - Se obtienen los ticket y se le ordena por prioridades para
-   * que la atencion se de acuerdo a su rango de prioridades.
-   * @summary Resumen
-   * @function listarTickets
-   * @returns {(Usuario|Array)} - Lista de Usuarios
-   */
   listarTickets() {
     this.ticketService
       .obtenerTicketsDia()
