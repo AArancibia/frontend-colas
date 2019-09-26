@@ -19,11 +19,13 @@
       <li
         nz-menu-item
         class="sider__lista--item"
-        style="background-color: #001529;"
+        style="background-color: #001529;color: #ffffff;"
       >
-        <!--<span><i nz-icon nzType="minus-circle" nzTheme="outline">
-          <span class="nav-text">Ocupado</span>
-        </i></span>-->
+        <span
+          ><i nz-icon nzType="user" nzTheme="outline">
+            <span class="nav-text"></span> </i
+        ></span>
+        {{ usuarioLogueado.username }}
         <!-- <div class="example-input">
           <input
             placeholder="Buscar Usuario..."
@@ -41,6 +43,12 @@
             </nz-auto-option>
           </nz-autocomplete>
         </div> -->
+      </li>
+      <li nz-submenu nzTitle="User" nzIcon="user" style="color: #ffffff">
+        <ul>
+          <!-- <h1>{{  }}</h1> -->
+          <li nz-menu-item (click)="logout()">Cerrar Sesión</li>
+        </ul>
       </li>
     </ul>
   </nz-sider>

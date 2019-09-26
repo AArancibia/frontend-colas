@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { environment } from "@env/environment";
 import { Observable } from "rxjs";
 import { AuthDTO, AuthRO } from "./auth.dto";
@@ -22,6 +22,7 @@ export class AuthenticationService {
   public usuario: Usuario = new Usuario();
   public auth: AuthRO = new AuthRO();
   helper = new JwtHelperService();
+  headers: HttpHeaders;
 
   constructor(
     private httpClitent: HttpClient,
@@ -29,6 +30,12 @@ export class AuthenticationService {
     private router: Router
   ) {
     this.cargarStorage();
+  }
+
+  public obtenerToken() {
+    return (this.headers = new HttpHeaders({
+      Authorization: "Bearer " + localStorage.getItem(ACCES_TOKEN)
+    }));
   }
 
   private request(method, endpoint, body?): Observable<any> {
@@ -73,6 +80,8 @@ export class AuthenticationService {
     localStorage.removeItem(USUARIO);
     localStorage.removeItem(ACCES_TOKEN);
     localStorage.removeItem(VENTANILLA);
+    this.auth = new AuthRO();
+    this.router.navigate(["/authentication"]);
   }
 
   estaLogueado(): boolean {
