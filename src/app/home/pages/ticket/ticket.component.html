@@ -1,6 +1,5 @@
 <div class="ventanilla__codigo">
-    {{ datosVentanilla.codigoventanilla }} |
-    {{ datosVentanilla.tipoatencion }}
+    {{ datosVentanilla.codigoventanilla }}
 </div>
 <div nz-row >
   <div nz-col [nzXs]="24" [nzLg]="11" >
@@ -133,18 +132,19 @@
         <div nz-col [nzXs]="11" [nzSm]="9" [nzMd]="11" [nzLg]="11"  class="card__contribuyente">
           <!--<p>{{ 'idtramite : ' + idtramite }}</p>
           <p>{{ selectTicket ? selectTicket.idtramite : '' }}</p>-->
-          <p>{{ mostrarInfoAdministrado.idcontribuyente }}</p>
+          <!-- <p>{{ mostrarInfoAdministrado.idcontribuyente }}</p>
           <p>
               {{ mostrarInfoAdministrado.nombre }} {{ mostrarInfoAdministrado.apepat }} {{ mostrarInfoAdministrado.apemat }}
           </p>
-          <p>{{ mostrarInfoAdministrado.nrodoc }}</p>
-          <!--<p>{{ estadoVentanilla }}</p>-->
+          <p>{{ mostrarInfoAdministrado.nrodoc }}</p> -->
+          <p>{{ ventanilla }}</p>
+          
         </div>
         <div nz-col [nzXs]="5" [nzSm]="10" [nzMd]="7" [nzLg]="8" class="card__tematica">
-          <p>Temática</p>
+          <!-- <p>Temática</p>
           <p>{{ selectTicket ? getTematica( selectTicket.idtematica ) : '' }}</p>
           <p >{{ selectTicket && selectTicket.idtramite ? 'Trámite' : '' }}</p>
-          <p>{{ selectTicket ? getTramite( selectTicket.idtramite ) : '' }}</p>
+          <p>{{ selectTicket ? getTramite( selectTicket.idtramite ) : '' }}</p> -->
         </div>
         <div nz-col [nzXs]="1" [nzSm]="1" [nzMd]="1" [nzLg]="1" >
           <!-- && atender -->
@@ -154,39 +154,24 @@
              *ngIf="validacionEstados && validacionEstados.estadoticketId === 3; else iconoDisabled"
              (click)="cambiarTematica()"
              nzTheme="outline"></i>
-          <!--
-          (nzVisibleChange)="change($event)"
-             nzTrigger="click"
-             [nzPlacement]="'bottom'"
-          nz-popover
-             [(nzVisible)]="visibleTematica"
-          [nzContent]="templateTematica" -->
           <ng-template #iconoDisabled>
             <i nz-icon nzType="edit" style="cursor: not-allowed;"></i>
           </ng-template>
-          <!--<ng-template #templateTematica>
-            <nz-select style="width: 150px;" [(ngModel)]="mostrarTematica"
-                       (ngModelChange)="actualizarTematica( $event )"
-                       nzAllowClear nzPlaceHolder="Choose">
-              <nz-option *ngFor="let tematica of listTematica"
-                         [nzLabel]="tematica.nombre" [nzValue]="tematica.idtematica"></nz-option>
-            </nz-select>
-          </ng-template>-->
         </div>
       </div>
     </ng-template>
   </div>
   <div nz-col [nzXs]="24" [nzMd]="1"></div>
-  <div nz-col [nzXs]="24" [nzMd]="24" [nzLg]="12" style="background-color: #ffffff;">
-    <!-- <div [hidden]="vistaDetalle"> -->
+  <!-- <div nz-col [nzXs]="24" [nzMd]="24" [nzLg]="12" style="background-color: #ffffff;">
+    
       <nz-card [nzExtra]="cardHeaderRight"
                [hidden]="( pasos === 2 )"
-               style="height: 90vh;" id="card__right" ><!-- [nzActions]="[actionSetting, actionEdit ]" -->
+               style="height: 90vh;" id="card__right" >
         <nz-table
                   [hidden]="(pasos === 1 || !validacionEstados || validacionEstados.estadoticketId < 3 ||  pasos === 2 || idtematica <= 0 || !selectTicket )"
                   #tematicaTable
                   [nzData]="listTematica"
-                  [nzSize]="'small'"><!-- [nzScroll]="{ y: '400px' }'" -->
+                  [nzSize]="'small'">
           <thead>
           <tr>
             <th>abr</th>
@@ -208,7 +193,7 @@
 
         <nz-table
           [hidden]="( pasos === 0 || !validacionEstados || validacionEstados.estadoticketId !== 3 )"
-          #basicTable [nzData]="listaTramites" [nzSize]="'small'"><!-- [nzScroll]="{ y: '400px' }'" -->
+          #basicTable [nzData]="listaTramites" [nzSize]="'small'">
           <thead>
           <tr>
             <th>Descripción</th>
@@ -263,7 +248,6 @@
                      name="inputTramites"
                      [(ngModel)]="inputTramites"
                      nz-input placeholder="Filtrar por tramite" />
-              <!-- (keyup)="filtrarTramites( inputTematicas.value )" -->
             </nz-input-group>
           </div>
         </div>
@@ -271,7 +255,7 @@
       <ng-template #suffixIconSearch>
         <i nz-icon type="search"></i>
       </ng-template>
-    <!-- </div> -->
+    
     <div
       *ngIf="pasos === 2"
       class="detalle">
@@ -341,7 +325,7 @@
       </div>
       <div class="card__right" style="margin-top: 1rem;">
         <div class="card__right__footer">
-          <div ><!-- (click)="imprimirDetalleTramite()" -->
+          <div >
             <i nz-icon type="printer"></i>
             <p>Imprimir</p>
           </div>
@@ -357,7 +341,7 @@
       </div>
     </div>
 
-  </div>
+  </div> -->
 </div>
 
 <ngx-snackbar

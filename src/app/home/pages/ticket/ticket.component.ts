@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnDestroy, OnInit } from "@angular/core";
 import { WebsocketService } from "@app/core/services/websocket/websocket.service";
 import { TicketService } from "@app/core/services/ticket/ticket.service";
 import { Ticket } from "@app/core/models/ticket.model";
-import { tap } from "rxjs/operators";
+import { tap, map } from "rxjs/operators";
 import { Tramite } from "@app/core/models/tramite.model";
 import { Tematica } from "@app/core/models/tematica.model";
 import { TematicaService } from "@app/core/services/tematica/tematica.service";
@@ -15,6 +15,7 @@ import { VentanillaService } from "@app/core/services/ventanilla/ventanilla.serv
 import { Ventanilla } from "@app/core/models/ventanilla.model";
 import { Router } from "@angular/router";
 import { AuthenticationService } from "@app/authentication/authentication.service";
+import { VentanillaReferencia } from "@app/core/models/ventanillareferencia.model";
 
 /**
  * @author Alexis Arancibia Sanchez <aarancibia4251@gmail.com>
@@ -36,7 +37,7 @@ export class TicketComponent implements OnInit, AfterViewInit {
   validacionEstados: DetEstadoTicket;
   listVentanillas: Ventanilla[] = [];
   idtematica: number;
-  idtramite: number;
+  //idtramite: number;
   ventanilla: number; // Esto solo tiene el id
   derivar: boolean = false;
   ventanillaDerivar: any;
@@ -48,6 +49,8 @@ export class TicketComponent implements OnInit, AfterViewInit {
   activo: number = 0;
   estadoVentanilla: number = 0;
   datosVentanilla: Ventanilla = new Ventanilla();
+  referencias: VentanillaReferencia[] = [];
+
   constructor(
     private wsSocket: WebsocketService,
     public ticketService: TicketService,
@@ -66,25 +69,25 @@ export class TicketComponent implements OnInit, AfterViewInit {
    */
   ngOnInit() {
     this.mostrarInfoAdministrado = {};
-          //this.selectTicket = null;
-          this.validacionEstados = null;
-          this.idtramite = null;
-          this.pasos = 0;
-          this.datosVentanilla = this.authenticationService.auth.ventanilla;
-          this.listarVentanillas();
-          this.listarTematicas();
-          this.ventanilla = this.datosVentanilla.id;
-          this.listarTickets();
-          this.derivar = false;
+    this.cargarReferencias();
+    this.validacionEstados = null;
+    //this.idtramite = null;
+    this.pasos = 0;
+    this.datosVentanilla = this.authenticationService.auth.ventanilla;
+    this.listarVentanillas();
+    this.ventanilla = this.datosVentanilla.id;
+    this.listarTickets();
+    this.derivar = false;
     this.cargarConfiguracion();
   }
 
-  /**
-   * Carga todas las configuraciones:
-   * - Sockets
-   * - Lista de Ventanillas, Tematicas, Tramites
-   * @function cargarConfiguracion
-   */
+  cargarReferencias() {
+    this.ticketService
+      .encontrarReferencia()
+      .pipe(map(referencias => (this.referencias = referencias)))
+      .subscribe();
+  }
+
   cargarConfiguracion() {
     this.nuevoTicket();
     this.ventanillaAsignadaAlTicket();
@@ -117,54 +120,6 @@ export class TicketComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
-  /**
-   * Funcion para llamar a servicio de actualizar tematica o trámite.
-   * @function cambiarTematica
-   * @returns {Function} Limpia campos idtematica y idtramite a ticket que se esta atendiendo.
-   */
-  cambiarTematica() {
-    this.pasos = 0;
-    this.ticketService
-      .actualizarTematicaOrTramite(this.selectTicket.id, {})
-      .pipe(
-        tap(() => {
-          this.selectTicket.idtematica = null;
-          this.selectTicket.idtramite = null;
-          this.idtramite = null;
-        })
-      )
-      .subscribe();
-  }
-
-  /**
-   * Funcion para llamar a servicio de asignar tramite a Ticket
-   * @function guardarTramite
-   * @returns {Ticket} Ticket modificado
-   */
-  guardarTramite() {
-    const ticket: Ticket = {
-      ...this.selectTicket
-    };
-    const { idtramite, idtematica, id } = ticket;
-    this.ticketService
-      .actualizarTematicaOrTramite(id, {
-        idtramite,
-        idtematica
-      })
-      .pipe(
-        tap((ticketDB: Ticket) => {
-          this.notificationService.info(
-            "Tramite Asignado",
-            `Tramite ${this.getTramite(idtramite)} asignado a ticket ${
-              this.selectTicket.codigo
-            }`
-          );
-          this.idtramite = this.selectTicket.idtramite;
-        })
-      )
-      .subscribe();
-  }
-
   listarTickets() {
     this.ticketService
       .obtenerTicketsDia()
@@ -178,6 +133,54 @@ export class TicketComponent implements OnInit, AfterViewInit {
                     !ticket.idventanilla
                 )
               : [];
+
+          console.log(this.listTicket);
+
+          const nuevo = [];
+
+          this.listTicket
+            .map((ticket: Ticket) => {
+              const { idventanilla } = this.referencias.find(
+                ref => ref.idreferencial == ticket.idreferencial
+              );
+              return {
+                idventanilla,
+                ticket
+              };
+            })
+            .map(({ idventanilla, ticket }) => {
+              if (idventanilla == this.ventanilla) {
+                return ticket;
+              }
+            })
+            .map(data =>
+              data !== undefined || null ? nuevo.push(data) : data
+            );
+
+          const filtros = tickets.filter(
+            ticket => ticket.idventanilla == this.ventanilla
+          );
+
+          //nuevo.push(filtros);
+          this.listTicket = [...nuevo, ...filtros];
+
+          // this.ventanilla -- idventanillla
+
+          // for (let i = 0; i < this.listTicket.length; i++) {
+          //   const ticket = this.listTicket[i];
+          //   if (!ticket.idventanilla) {
+          //     const { idventanilla } = this.referencias.find(
+          //       ref => ref.idreferencial == ticket.idreferencial
+          //     );
+          //     if (this.ventanilla == idventanilla) {
+          //       this.listTicket = [...this.listTicket, ticket];
+          //     } else {
+          //       this.listTicket.splice(i, 1);
+          //       this.listTicket = [...this.listTicket];
+          //     }
+          //   }
+          // }
+
           if (this.listTicket.length > 0) {
             const prioridades = {
               1: [],
@@ -207,12 +210,12 @@ export class TicketComponent implements OnInit, AfterViewInit {
               .concat(prioridades["3"])
               .concat(prioridades["4"]);
             this.listTicket = ordenados;
-            this.listTicket = this.listTicket
-              .filter(
-                (ticket: Ticket) =>
-                  ticket.tipoTicket.abr === this.datosVentanilla.tipoatencion
-              )
-              .slice();
+            // this.listTicket = this.listTicket
+            //   .filter(
+            //     (ticket: Ticket) =>
+            //       ticket.tipoTicket.abr === this.datosVentanilla.tipoatencion
+            //   )
+            //   .slice();
           }
           if (this.listTicket.length > 0) {
             this.datosTicket(this.listTicket[0]);
@@ -223,20 +226,19 @@ export class TicketComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
-  /**
-   * Funcion que esta atento al socket de '[TICKET] Nuevo' para estar atento a un nuevo Ticket:
-   * - Se obtiene el nuevo Ticket creado y se le acomoda de acuerdo a su prioridad
-   * @summary Resumen
-   * @function nuevoTicket
-   * @returns {Ticket} - Nuevo Ticket
-   */
   nuevoTicket() {
     this.ticketService
       .nuevoTicket()
       .pipe(
-        tap((ticket: Ticket) => {
-          if (ticket.tipoTicket.abr !== this.datosVentanilla.tipoatencion)
-            return;
+        tap(async (ticket: Ticket) => {
+          // if (ticket.tipoTicket.abr !== this.datosVentanilla.tipoatencion)
+          //   return;
+          let referencia = await this.ticketService
+            .encontrarReferencia({ idreferencial: ticket.idreferencial })
+            .toPromise();
+          referencia = referencia[0];
+          if (this.ventanilla !== referencia.idventanilla) return;
+
           if (this.listTicket.length > 0) {
             this.listTicket.push(ticket);
             const prioridades = {
@@ -281,14 +283,6 @@ export class TicketComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
-  /**
-   * Funcion que :
-   * - Se obtienen los ticket y se le ordena por prioridades para
-   * que la atencion se de acuerdo a su rango de prioridades.
-   * @summary Resumen
-   * @function listarTickets
-   * @returns {(Usuario|Array)} - Lista de Usuarios
-   */
   estadosTickets(estado: number) {
     if (this.estadoVentanilla === 4) return;
     switch (estado) {
@@ -338,22 +332,24 @@ export class TicketComponent implements OnInit, AfterViewInit {
       }
       // ATENDIDO
       case 4: {
-        if (
-          !this.selectTicket.idtramite &&
-          this.validacionEstados.estadoticketId !== 2
-        )
-          return;
-        if (this.selectTicket.idtramite !== this.idtramite) {
-          this.notificationService.error(
-            "Notificación",
-            "No ha guardado los ultimos cambios en Asignar Tramite",
-            {
-              nzPauseOnHover: true
-            }
-          );
-          return;
-        }
-        if (this.validacionEstados.estadoticketId === 1) return;
+        console.log(this.selectTicket);
+        console.log(this.validacionEstados.estadoticketId);
+        // if (
+        //   //!this.selectTicket.idtramite &&
+        //   this.validacionEstados.estadoticketId !== 2
+        // )
+        //   return;
+        // if (this.selectTicket.idtramite !== this.idtramite) {
+        //   this.notificationService.error(
+        //     "Notificación",
+        //     "No ha guardado los ultimos cambios en Asignar Tramite",
+        //     {
+        //       nzPauseOnHover: true
+        //     }
+        //   );
+        //   return;
+        // }
+        //if (this.validacionEstados.estadoticketId === 1) return;
         const idestado = this.validacionEstados.estadoticketId === 2 ? 6 : 4;
         this.ticketService
           .guardarNuevoEstado(this.selectTicket.id, idestado)
@@ -411,13 +407,13 @@ export class TicketComponent implements OnInit, AfterViewInit {
           }
           this.listTicket = [...this.listTicket];
           this.datosTicket(this.listTicket[0]);
-          if (this.listTicket[0] && this.listTicket[0].idtematica === null) {
-            this.notificationService.create(
-              "warning",
-              "Notificación",
-              "Ticket vino sin Tematica"
-            );
-          }
+          // if (this.listTicket[0] && this.listTicket[0].idtematica === null) {
+          //   this.notificationService.create(
+          //     "warning",
+          //     "Notificación",
+          //     "Ticket vino sin Tematica"
+          //   );
+          // }
         })
       )
       .subscribe();
@@ -488,7 +484,7 @@ export class TicketComponent implements OnInit, AfterViewInit {
   datosTicket(ticket: Ticket) {
     if (ticket) {
       this.selectTicket = ticket;
-      this.mostrarInfoAdministrado = { ...this.selectTicket.administrado };
+      //this.mostrarInfoAdministrado = { ...this.selectTicket.administrado };
       this.selectTicket.detEstados.sort(
         (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
       );
@@ -500,24 +496,23 @@ export class TicketComponent implements OnInit, AfterViewInit {
       this.mostrarInfoAdministrado = {};
       this.selectTicket = null;
       this.validacionEstados = null;
-      this.idtramite = null;
+      //this.idtramite = null;
     }
   }
 
   masDetalle() {
-    this.idtramite = this.selectTicket.idtramite;
-    if (this.selectTicket.idtematica === null) {
-      this.pasos = 0;
-    } else {
-      this.listarTramitePorTematica(this.selectTicket.idtematica);
-    }
-
-    if (
-      this.selectTicket.idtramite &&
-      this.validacionEstados.estadoticketId === 3
-    ) {
-      this.mostrarDetalleTramite(this.selectTicket.idtramite);
-    }
+    // this.idtramite = this.selectTicket.idtramite;
+    // if (this.selectTicket.idtematica === null) {
+    //   this.pasos = 0;
+    // } else {
+    //   this.listarTramitePorTematica(this.selectTicket.idtematica);
+    // }
+    // if (
+    //   this.selectTicket.idtramite &&
+    //   this.validacionEstados.estadoticketId === 3
+    // ) {
+    //   this.mostrarDetalleTramite(this.selectTicket.idtramite);
+    // }
   }
 
   getTematica(idtematica) {
@@ -528,16 +523,16 @@ export class TicketComponent implements OnInit, AfterViewInit {
   }
 
   mostrarDetalleTramite(idtramite) {
-    this.tramiteService
-      .obtenerDetallesDeTramite(idtramite)
-      .pipe(
-        tap(detalleTramite => {
-          this.detallesTramite = detalleTramite;
-          this.selectTicket.idtramite = idtramite;
-          this.pasos = 2;
-        })
-      )
-      .subscribe();
+    // this.tramiteService
+    //   .obtenerDetallesDeTramite(idtramite)
+    //   .pipe(
+    //     tap(detalleTramite => {
+    //       this.detallesTramite = detalleTramite;
+    //       this.selectTicket.idtramite = idtramite;
+    //       this.pasos = 2;
+    //     })
+    //   )
+    //   .subscribe();
   }
 
   getTramite(idtramite) {
@@ -547,46 +542,18 @@ export class TicketComponent implements OnInit, AfterViewInit {
     return tramite ? tramite.descripcion : "";
   }
 
-  listarTematicas() {
-    this.tematicaService
-      .obtenerTematicas()
-      .pipe(tap((tematicas: Tematica[]) => (this.listTematica = tematicas)))
-      .subscribe();
-  }
-
-  listarTramitePorTematica(idtematica) {
-    /*const idtramite = this.selectTicket.idtramite ? this.selectTicket.idtramite : null;
-    this.ticketService.actualizarTematicaOrTramite( this.selectTicket.id , {
-      idtematica,
-      idtramite,
-    })
-      .pipe()
-      .subscribe();*/
-    this.tematicaService
-      .tramitesByTematica(idtematica)
-      .pipe(
-        tap((tramites: Tramite[]) => {
-          this.listaTramites = tramites;
-          this.selectTicket.idtematica = idtematica;
-          this.pasos = 1;
-        })
-      )
-      .subscribe();
-  }
-
   listarVentanillas() {
     this.ventanillaService
       .obtenerVentanillas()
       .pipe(
         tap((ventanillas: Ventanilla[]) => {
-          this.listVentanillas = ventanillas
-            .filter(
-              (ventanilla: Ventanilla) => ventanilla.id !== this.ventanilla
-            )
-            .filter(
-              (ventanilla: Ventanilla) =>
-                ventanilla.tipoatencion === this.datosVentanilla.tipoatencion
-            );
+          this.listVentanillas = ventanillas.filter(
+            (ventanilla: Ventanilla) => ventanilla.id !== this.ventanilla
+          );
+          // .filter(
+          //   (ventanilla: Ventanilla) =>
+          //     ventanilla.tipoatencion === this.datosVentanilla.tipoatencion
+          // );
         })
       )
       .subscribe();
@@ -637,9 +604,7 @@ export class TicketComponent implements OnInit, AfterViewInit {
                   ${caso.requisitos.map(requisito => {
                     return `
                             <li class="detalle__requisitos--item">
-                              <label nz-checkbox >${
-                                requisito.descripcion
-                              }</label>
+                              <label nz-checkbox >${requisito.descripcion}</label>
                             </li>
                           `;
                   })}
@@ -701,9 +666,9 @@ export class TicketComponent implements OnInit, AfterViewInit {
   }
 
   renderCardRight() {
-    const cardRight: any = document.getElementById("card__right");
-    const cardExtraRight: any = cardRight.querySelector(".ant-card-extra");
-    cardExtraRight.style.width = "100%";
+    // const cardRight: any = document.getElementById("card__right");
+    // const cardExtraRight: any = cardRight.querySelector(".ant-card-extra");
+    // cardExtraRight.style.width = "100%";
   }
 
   ultimoEstadoVentanilla() {

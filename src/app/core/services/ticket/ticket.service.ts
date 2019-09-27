@@ -33,6 +33,10 @@ export class TicketService extends Socket {
     });
   }
 
+  encontrarReferencia(data?) {
+    return this.request("POST", `ticket/referencia`, data);
+  }
+
   // Asignamos la ventanilla en Ticket y guardamos nuevo registro en DetEstadoTicket
   asignarVentanilla(idticket: number, idventanilla: number) {
     return this.request("PUT", `ticket/${idticket}/asignar/${idventanilla}`);

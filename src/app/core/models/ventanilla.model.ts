@@ -4,6 +4,5 @@ export class Ventanilla {
     public codigoventanilla?: string,
     public ubicacion?: string,
     public idusuario?: number,
-    public tipoatencion?: string,
   ) {}
 }
