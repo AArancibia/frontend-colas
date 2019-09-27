@@ -65,23 +65,6 @@ export class TicketComponent implements OnInit, AfterViewInit {
    *
    */
   ngOnInit() {
-    // this.ventanillaService.statusV$
-    //   .pipe(
-    //     tap((ventanilla: Ventanilla) => {
-    //       this.mostrarInfoAdministrado = {};
-    //       //this.selectTicket = null;
-    //       this.validacionEstados = null;
-    //       this.idtramite = null;
-    //       this.pasos = 0;
-    //       this.datosVentanilla = ventanilla;
-    //       this.listarVentanillas();
-    //       this.listarTematicas();
-    //       this.ventanilla = ventanilla.id;
-    //       this.listarTickets();
-    //       this.derivar = false;
-    //     })
-    //   )
-    //   .subscribe();
     this.mostrarInfoAdministrado = {};
           //this.selectTicket = null;
           this.validacionEstados = null;
