@@ -109,7 +109,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const opcion1 = document.getElementsByClassName(
       "ng-tns-c3-2 ant-menu-submenu-title"
     )[0];
-    opcion1.insertAdjacentHTML("beforeend", "Opciones");
+    //opcion1.insertAdjacentHTML("beforeend", "Opciones");
   }
 
   /** custom trigger can be TemplateRef **/

@@ -139,15 +139,21 @@ export class TicketComponent implements OnInit, AfterViewInit {
 
           for (let i = 0; i < tickets.length; i++) {
             const ticket = tickets[i];
-            if (ticket.idventanilla ) {
-              if ((ticket.idventanilla == this.ventanilla) || this.datosVentanilla.unica ) {
+            if (ticket.idventanilla) {
+              if (
+                ticket.idventanilla == this.ventanilla ||
+                this.datosVentanilla.unica
+              ) {
                 nuevo.push(ticket);
               }
             } else {
-              //console.log(`${ticket.idreferencial} - ${ticket.codigo}`);
+              console.log(`${ticket.idreferencial} - ${ticket.codigo}`);
               const ref = await this.buscarReferencia(ticket.idreferencial);
 
-              if (ref.idventanilla == this.ventanilla || this.datosVentanilla.unica ) {
+              if (
+                (ref && ref.idventanilla == this.ventanilla) ||
+                this.datosVentanilla.unica
+              ) {
                 nuevo.push(ticket);
               }
             }
@@ -205,15 +211,12 @@ export class TicketComponent implements OnInit, AfterViewInit {
       .nuevoTicket()
       .pipe(
         tap(async (ticket: Ticket) => {
-          // if (ticket.tipoTicket.abr !== this.datosVentanilla.tipoatencion)
-          //   return;
-          let referencia = await this.ticketService
-            .encontrarReferencia({ idreferencial: ticket.idreferencial })
-            .toPromise();
-          referencia = referencia[0];
+          let referencia = await this.buscarReferencia(ticket.idreferencial);
 
           if (this.datosVentanilla.unica) {
             this.listTicket.push(ticket);
+          } else if (!referencia) {
+            return;
           } else if (this.ventanilla !== referencia.idventanilla) return;
 
           if (this.listTicket.length > 0) {
