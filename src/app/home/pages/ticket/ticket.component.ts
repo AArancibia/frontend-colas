@@ -17,12 +17,6 @@ import { Router } from "@angular/router";
 import { AuthenticationService } from "@app/authentication/authentication.service";
 import { VentanillaReferencia } from "@app/core/models/ventanillareferencia.model";
 
-/**
- * @author Alexis Arancibia Sanchez <aarancibia4251@gmail.com>
- */
-/**
- * Ticket component
- */
 @Component({
   selector: "app-ticket",
   templateUrl: "./ticket.component.html",
@@ -61,7 +55,9 @@ export class TicketComponent implements OnInit, AfterViewInit {
     private ventanillaService: VentanillaService,
     private authenticationService: AuthenticationService,
     private router: Router
-  ) {}
+  ) {
+    this.cargarReferencias();
+  }
 
   /**
    * Funcion ngOnInit de Angular
@@ -69,7 +65,6 @@ export class TicketComponent implements OnInit, AfterViewInit {
    */
   ngOnInit() {
     this.mostrarInfoAdministrado = {};
-    this.cargarReferencias();
     this.validacionEstados = null;
     //this.idtramite = null;
     this.pasos = 0;
@@ -120,66 +115,45 @@ export class TicketComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
+  async buscarReferencia(idreferencial: number) {
+    return await this.referencias.find(
+      ref => ref.idreferencial === idreferencial
+    );
+  }
+
   listarTickets() {
     this.ticketService
       .obtenerTicketsDia()
       .pipe(
-        tap((tickets: Ticket[]) => {
-          this.listTicket =
-            tickets.length > 0
-              ? tickets.filter(
-                  ticket =>
-                    ticket.idventanilla == this.ventanilla ||
-                    !ticket.idventanilla
-                )
-              : [];
-
-          console.log(this.listTicket);
+        tap(async (tickets: Ticket[]) => {
+          // this.listTicket =
+          //   tickets.length > 0
+          //     ? tickets.filter(
+          //         ticket =>
+          //           ticket.idventanilla == this.ventanilla ||
+          //           !ticket.idventanilla
+          //       )
+          //     : [];
 
           const nuevo = [];
 
-          this.listTicket
-            .map((ticket: Ticket) => {
-              const { idventanilla } = this.referencias.find(
-                ref => ref.idreferencial == ticket.idreferencial
-              );
-              return {
-                idventanilla,
-                ticket
-              };
-            })
-            .map(({ idventanilla, ticket }) => {
-              if (idventanilla == this.ventanilla) {
-                return ticket;
+          for (let i = 0; i < tickets.length; i++) {
+            const ticket = tickets[i];
+            if (ticket.idventanilla ) {
+              if ((ticket.idventanilla == this.ventanilla) || this.datosVentanilla.unica ) {
+                nuevo.push(ticket);
               }
-            })
-            .map(data =>
-              data !== undefined || null ? nuevo.push(data) : data
-            );
+            } else {
+              //console.log(`${ticket.idreferencial} - ${ticket.codigo}`);
+              const ref = await this.buscarReferencia(ticket.idreferencial);
 
-          const filtros = tickets.filter(
-            ticket => ticket.idventanilla == this.ventanilla
-          );
+              if (ref.idventanilla == this.ventanilla || this.datosVentanilla.unica ) {
+                nuevo.push(ticket);
+              }
+            }
+          }
 
-          //nuevo.push(filtros);
-          this.listTicket = [...nuevo, ...filtros];
-
-          // this.ventanilla -- idventanillla
-
-          // for (let i = 0; i < this.listTicket.length; i++) {
-          //   const ticket = this.listTicket[i];
-          //   if (!ticket.idventanilla) {
-          //     const { idventanilla } = this.referencias.find(
-          //       ref => ref.idreferencial == ticket.idreferencial
-          //     );
-          //     if (this.ventanilla == idventanilla) {
-          //       this.listTicket = [...this.listTicket, ticket];
-          //     } else {
-          //       this.listTicket.splice(i, 1);
-          //       this.listTicket = [...this.listTicket];
-          //     }
-          //   }
-          // }
+          this.listTicket = nuevo.length > 0 ? nuevo : [];
 
           if (this.listTicket.length > 0) {
             const prioridades = {
@@ -237,10 +211,18 @@ export class TicketComponent implements OnInit, AfterViewInit {
             .encontrarReferencia({ idreferencial: ticket.idreferencial })
             .toPromise();
           referencia = referencia[0];
-          if (this.ventanilla !== referencia.idventanilla) return;
+
+          if (this.datosVentanilla.unica) {
+            this.listTicket.push(ticket);
+          } else if (this.ventanilla !== referencia.idventanilla) return;
 
           if (this.listTicket.length > 0) {
-            this.listTicket.push(ticket);
+            if (
+              this.listTicket.filter(item => item.codigo == ticket.codigo)
+                .length < 1
+            ) {
+              this.listTicket.push(ticket);
+            }
             const prioridades = {
               1: [],
               2: [],

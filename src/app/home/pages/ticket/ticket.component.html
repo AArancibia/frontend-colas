@@ -137,7 +137,7 @@
               {{ mostrarInfoAdministrado.nombre }} {{ mostrarInfoAdministrado.apepat }} {{ mostrarInfoAdministrado.apemat }}
           </p>
           <p>{{ mostrarInfoAdministrado.nrodoc }}</p> -->
-          <p>{{ ventanilla }}</p>
+          <p>{{ ' Ventanilla --->' +  ventanilla }}</p>
           
         </div>
         <div nz-col [nzXs]="5" [nzSm]="10" [nzMd]="7" [nzLg]="8" class="card__tematica">
@@ -146,10 +146,7 @@
           <p >{{ selectTicket && selectTicket.idtramite ? 'Trámite' : '' }}</p>
           <p>{{ selectTicket ? getTramite( selectTicket.idtramite ) : '' }}</p> -->
         </div>
-        <div nz-col [nzXs]="1" [nzSm]="1" [nzMd]="1" [nzLg]="1" >
-          <!-- && atender -->
-          <!-- (click)="mostrarListaTematicas()" -->
-          <!-- {{ validacionEstados && validacionEstados.estadoticketId }} -->
+        <!-- <div nz-col [nzXs]="1" [nzSm]="1" [nzMd]="1" [nzLg]="1" >
           <i nz-icon nzType="edit"
              *ngIf="validacionEstados && validacionEstados.estadoticketId === 3; else iconoDisabled"
              (click)="cambiarTematica()"
@@ -157,7 +154,7 @@
           <ng-template #iconoDisabled>
             <i nz-icon nzType="edit" style="cursor: not-allowed;"></i>
           </ng-template>
-        </div>
+        </div> -->
       </div>
     </ng-template>
   </div>
