@@ -26,25 +26,9 @@
             <span class="nav-text"></span> </i
         ></span>
         {{ usuarioLogueado.username }}
-        <!-- <div class="example-input">
-          <input
-            placeholder="Buscar Usuario..."
-            nz-input
-            [(ngModel)]="inputValue"
-            (input)="onInput($event.target?.value)"
-            [nzAutocomplete]="auto"
-          />
-          <nz-autocomplete nzBackfill #auto>
-            <nz-auto-option
-              *ngFor="let usuario of usuarios" [nzValue]="usuario.username"
-              (selectionChange)="guardarVentanilla( usuario )"
-            >
-              {{ usuario.username }}
-            </nz-auto-option>
-          </nz-autocomplete>
-        </div> -->
+
       </li>
-      <li nz-submenu nzTitle="User" nzIcon="user" style="color: #ffffff">
+      <li nzOpen nz-submenu nzTitle="User" nzIcon="user">
         <ul>
           <!-- <h1>{{  }}</h1> -->
           <li nz-menu-item (click)="logout()">Cerrar Sesión</li>
