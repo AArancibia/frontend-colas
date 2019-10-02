@@ -16,7 +16,7 @@ export interface Ticket {
   /** Campo Urgente */
   urgente: boolean;
   /** Campo Urgente */
-  idreferencial: number;
+  idreferencia: number;
   /** Campo Preferencial */
   preferencial: boolean;
   /** Correlativo del Ticket */
